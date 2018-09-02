@@ -22,3 +22,8 @@ $pytest
 - Enable either exact or inexact match through the cli
 - add tests fro writing files and the fuzzy matching
 - add some quick tools for aggregating columns
+
+## Data
+
+Data file came from:
+http://askebsa.dol.gov/FOIA%20Files/2016/Latest/F_SCH_A_PART1_2016_Latest.zip
