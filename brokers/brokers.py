@@ -109,15 +109,12 @@ def group_records_exact(records, key_columns):
     # return records_with_group_ids
     return records_with_group_ids
 
-def consolidate_brokers_exact(input_filename, key_cols, output_filename):
+def consolidate_brokers(input_filename, key_cols, output_filename, exact=False):
     brokers = load_file(input_filename)
-    grouped_records = group_records_exact(brokers['records'], key_cols)
+    if exact:
+        grouped_records = group_records_exact(brokers['records'], key_cols)
+    else:
+        raise RuntimeError("fuzzy match not implemented")
     headers = ['GROUP_ID'] + list(brokers['headers'])
     output = [headers] + grouped_records
     write_file(output_filename, output)
-
-def main():
-    print(sys.args)
-
-if __name__ == '__main__':
-    main()
