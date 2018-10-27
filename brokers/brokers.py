@@ -2,6 +2,8 @@
 import csv
 import itertools
 import random
+import collections
+from uuid import uuid4
 
 MIN_SIMILARITY = 0.75
 
@@ -91,18 +93,21 @@ def group_records_exact(records, key_columns):
     def make_key_for_cols(record):
         return tuple([record[i] for i in key_columns])
 
-    # use itertools to group by key columns
-    # itertools expects sorted data
-    sorted_records = sorted(records, key=make_key_for_cols)
-    grouped_records = [
-        list(group) for _, group in itertools.groupby(sorted_records, key=make_key_for_cols)
-    ]
+    # group by key columns
+    grouped_records = collections.defaultdict(list)
+
+    for record in records:
+        grouped_records[make_key_for_cols(record)].append(record)
     
-    # make list of tuples with group id appended
-    # TODO: there is probably a more elegant way to do this with iterators
+    return grouped_records
+
+def assign_ids(grouped_records):
+    """make list of tuples with group id appended
+    TODO: there is probably a more elegant way to do this with iterators
+    """
     records_with_group_ids = []
-    ids = range(len(grouped_records))
-    for id, record_group in zip(ids, grouped_records):
+    for record_group in grouped_records.values():
+        id = uuid4()
         for record in record_group:
             records_with_group_ids.append(tuple([id] + list(record)))
 
@@ -115,6 +120,7 @@ def consolidate_brokers(input_filename, key_cols, output_filename, exact=False):
         grouped_records = group_records_exact(brokers['records'], key_cols)
     else:
         raise RuntimeError("fuzzy match not implemented")
+    records_with_ids = assign_ids(grouped_records)    
     headers = ['GROUP_ID'] + list(brokers['headers'])
-    output = [headers] + grouped_records
+    output = [headers] + records_with_ids
     write_file(output_filename, output)

@@ -1,7 +1,7 @@
 # Python 3 compatible
 from .brokers import (
     load_file, create_hash_vector, compare_vectors_on_cols, 
-    group_records_exact
+    group_records_exact, assign_ids
 )
 
 def test_load_file():
@@ -43,13 +43,38 @@ def test_group_records_exact():
         ('B', '2', 'p', 'r')
     ]
 
-    records_with_ids = group_records_exact(records, [0,1])
-    print(records_with_ids)
-    assert records_with_ids == [
-        (0, 'A', '1', 'x', 'y'),
-        (0, 'A', '1', 'x', 'z'),
-        (1, 'A', '2', 'u', 'v'),
-        (2, 'B', '1', 'x', 'y'),
-        (2, 'B', '1', 's', 't'),
-        (3, 'B', '2', 'p', 'r')
-    ]
+    grouped_records = group_records_exact(records, [0,1])
+
+    assert grouped_records == {
+        ('A', '1'): [
+            ('A', '1', 'x', 'y'),
+            ('A', '1', 'x', 'z')
+        ],
+        ('A','2'): [('A', '2', 'u', 'v')],
+        ('B', '1'): [
+            ('B', '1', 'x', 'y'),
+            ('B', '1', 's', 't')
+        ],
+        ('B', '2'): [('B', '2', 'p', 'r')]
+    }
+
+def test_assign_ids():
+    grouped_records = {
+        ('A', '1'): [
+            ('A', '1', 'x', 'y'),
+            ('A', '1', 'x', 'z')
+        ],
+        ('A','2'): [('A', '2', 'u', 'v')],
+        ('B', '1'): [
+            ('B', '1', 'x', 'y'),
+            ('B', '1', 's', 't')
+        ],
+    }
+    
+    records_with_ids = assign_ids(grouped_records)
+    a1_records = filter(lambda r: r[0] == 'A' and r[1] == '1', records_with_ids)
+
+    assert all([r[0] == a1_records[0][0] for r in a1_records])
+
+    all_ids = set([r[0] for r in records_with_ids])
+    assert len(all_ids)
